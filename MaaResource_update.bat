@@ -9,10 +9,14 @@
 @REM ~p extracts the path (excluding the filename).
 pushd %~dp0
 
+setlocal
+
 set LOGFILE="MaaResource_update.log"
 
 @REM Append output to the log file
 call :to_Log >> %LOGFILE%
+
+endlocal
 
 @REM Avoid executing other scripts by mistake
 goto :eof
