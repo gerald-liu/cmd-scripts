@@ -55,12 +55,11 @@ git pull -f
 cd ..
 
 @REM Copy the updated files
-@REM MaaResource: This is the source directory from which files will be copied.
-@REM .: This represents the destination (current directory).
+@REM MaaResource: source directory from which files will be copied.
+@REM .: destination (current directory).
 @REM /xd: Exclude the following directories.
-@REM %cd%\MaaResource\.git: This specifies the directory to exclude.
+@REM %cd%\MaaResource\.git: directory to exclude.
 @REM /xf: Exclude the following files.
-@REM - %cd% is a variable that represents the current directory.
 @REM /e: Copy all subdirectories, including empty ones.
 echo %date% %time% Copy the updated files to MAA root.
 robocopy MaaResource . /xd %cd%\MaaResource\.git /xf LICENSE README.md /e
