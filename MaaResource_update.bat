@@ -13,68 +13,37 @@ setlocal
 
 set LOGFILE="MaaResource_update.log"
 
-@REM Append output to the log file
-call :to_Log >> %LOGFILE%
-
-endlocal
-
-@REM Avoid executing other scripts by mistake
-goto :eof
-
-
-:to_Log
-
 @REM Clone first if the local branch is not available
 if not exist MaaResource (
-  echo %date% %time% Clone MaaResource from MaaAssistantArknights.
+  echo %date% %time% Clone MaaResource from MaaAssistantArknights. >> %LOGFILE%
   git clone https://github.com/MaaAssistantArknights/MaaResource MaaResource
+  echo %date% %time% Copy the updated files to MAA root. >> %LOGFILE%
+  robocopy MaaResource . /xd MaaResource\.git /xf LICENSE README.md /e
 )
+
 cd MaaResource
 
 @REM Check if local and remote are the same
-git fetch origin
+git fetch origin main
 
-@REM Get the status of the Git repository in a simplified ("porcelain") format
-@REM ^: Asserts that the match must occur at the beginning of the line.
-@REM [ M]: Indicates a character class matching either a space or an M.
-@REM - An M indicates that a file has been modified.
-@REM - A space indicates that there are untracked files.
-@REM %errorlevel%: success (1) or failure (0) of the last command that was run.
-@REM If there are no modified or untracked files, findstr will not find a match, 
-@REM and the errorlevel will be set to 1.
-@REM >nul: Redirects the output of the command to nul to silence the output.
-git status --porcelain | findstr "^[ M]" >nul
-if %errorlevel% neq 0 (
-  cd ..
-  goto start_MAA
-)
+@REM Count number of commits behind the origin
+for /f "tokens=*" %%a in ('git rev-list --count HEAD..origin') do set BEHIND=%%a
 
 @REM If the local version is different, do the git pull
-echo %date% %time% Update MaaResource via git pull.
-git pull -f
-cd ..
+if %BEHIND% gtr 0 (
+  echo %date% %time% Pull MaaResource - %BEHIND% commits behind. >> ..\%LOGFILE%
+  git pull -f origin main
+  cd ..
+  echo %date% %time% Copy the updated files to MAA root. >> %LOGFILE%
+  robocopy MaaResource . /xd MaaResource\.git /xf LICENSE README.md /e
+) else (
+  cd ..
+)
 
-@REM Copy the updated files
-@REM MaaResource: source directory from which files will be copied.
-@REM .: destination (current directory).
-@REM /xd: Exclude the following directories.
-@REM %cd%\MaaResource\.git: directory to exclude.
-@REM /xf: Exclude the following files.
-@REM /e: Copy all subdirectories, including empty ones.
-echo %date% %time% Copy the updated files to MAA root.
-robocopy MaaResource . /xd %cd%\MaaResource\.git /xf LICENSE README.md /e
-
-@REM End of to_Log
-exit /b
-
-
-:start_MAA
 @REM Start MAA.exe in the directory where the batch file is located
 start MAA.exe
 
-@REM End of start_MAA
 exit /b
-
 
 @REM Restore working directory
 popd
